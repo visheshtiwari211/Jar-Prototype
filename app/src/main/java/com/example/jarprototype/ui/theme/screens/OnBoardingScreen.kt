@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -49,11 +50,13 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.example.jarprototype.model.Data
 import com.example.jarprototype.model.EducationCard
 import com.example.jarprototype.ui.theme.viewmodel.JarViewModel
 import com.example.jarprototype.utils.Utils.toComposeColor
@@ -70,11 +73,20 @@ fun OnBoardingScreen(
         viewModel.getEducationMetaData()
     }
     val expandedIndexFlow by viewModel.expandedIndexFlow.collectAsStateWithLifecycle()
-    var bgBrush by remember { mutableStateOf(Brush.linearGradient(listOf(Color.White, Color.White)))}
+    var bgBrush by remember {
+        mutableStateOf(
+            Brush.verticalGradient(
+                listOf(
+                    Color.White,
+                    Color.White
+                )
+            )
+        )
+    }
 
     LaunchedEffect(expandedIndexFlow) {
         if (expandedIndexFlow != null) {
-            bgBrush = Brush.linearGradient(
+            bgBrush = Brush.verticalGradient(
                 listOf(
                     getEducationMetaDataflow?.manualBuyEducationData?.educationCardList[expandedIndexFlow
                         ?: 0]?.startGradient?.toComposeColor() ?: Color.White,
@@ -85,100 +97,163 @@ fun OnBoardingScreen(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(brush = bgBrush)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Row(
+    var showSaveButton by remember { mutableStateOf(false) }
+
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .background(brush = bgBrush)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight()
-                    .padding(horizontal = 16.dp, vertical = 15.5.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    .wrapContentHeight(),
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Sharp.ArrowBack,
-                    contentDescription = null,
+                Row(
                     modifier = Modifier
-                        .size(height = 24.dp, width = 20.dp)
-                        .padding(vertical = 2.dp),
-                    tint = Color.White
-                )
-
-                Text(
-                    text = "Onboarding",
-                    style = MaterialTheme.typography.headlineMedium.copy(
-                        fontWeight = FontWeight(700),
-                        fontSize = 16.sp,
-                        lineHeight = 24.sp,
-                        color = Color.White,
-                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(horizontal = 16.dp, vertical = 15.5.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Sharp.ArrowBack,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(height = 24.dp, width = 20.dp)
+                            .padding(vertical = 2.dp),
+                        tint = Color.White
                     )
-                )
+
+                    Text(
+                        text = "Onboarding",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight(700),
+                            fontSize = 16.sp,
+                            lineHeight = 24.sp,
+                            color = Color.White,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        )
+                    )
+                }
+            }
+            EducationCardList(
+                getEducationMetaDataflow,
+                viewModel,
+                screenHeight,
+                onSaveBtnVisibility = { boolean -> showSaveButton = boolean })
+        }
+        if (showSaveButton) {
+            Column(
+                modifier = Modifier.wrapContentSize(),
+                verticalArrangement = Arrangement.Top,
+                horizontalAlignment = Alignment.Start
+            ) {
+                Row(
+                    modifier = Modifier
+                        .wrapContentSize()
+                        .clip(shape = RoundedCornerShape(31.dp))
+                        .background(
+                            color = getEducationMetaDataflow?.manualBuyEducationData?.saveButtonCta?.backgroundColor?.toComposeColor()
+                                ?: Color(0xFF272239)
+                        )
+                        .border(
+                            color = getEducationMetaDataflow?.manualBuyEducationData?.saveButtonCta?.strokeColor?.toComposeColor()
+                                ?: Color(0xFF272239), width = 0.dp
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .wrapContentSize()
+                            .padding(top = 14.dp, bottom = 14.dp, start = 24.dp, end = 56.dp),
+                    ) {
+                        Text(
+                            text = getEducationMetaDataflow?.manualBuyEducationData?.saveButtonCta?.text
+                                ?: "Save in Gold",
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight(700),
+                                fontSize = 14.sp,
+                                lineHeight = 20.sp,
+                                letterSpacing = 0.sp,
+                                color = getEducationMetaDataflow?.manualBuyEducationData?.saveButtonCta?.textColor?.toComposeColor()
+                                    ?: Color.White
+                            )
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            val size = getEducationMetaDataflow?.manualBuyEducationData?.educationCardList?.size ?: 0
-            var expandedIndex by remember { mutableStateOf<Int?>(null) }
-            getEducationMetaDataflow?.manualBuyEducationData?.educationCardList?.forEachIndexed { index, educationCard ->
-                var visible by remember { mutableStateOf(false) }
-                var expandedDuringAnimation by remember { mutableStateOf(true) }
+    }
+}
 
-                LaunchedEffect(Unit) {
-                    delay(index * 1500L)
-                    visible = true
-                    expandedDuringAnimation = true
-                    expandedIndex = index
-                    delay(1000L)
-                    expandedDuringAnimation = false
+@Composable
+private fun EducationCardList(
+    getEducationMetaDataflow: Data?,
+    viewModel: JarViewModel,
+    screenHeight: IntSize,
+    onSaveBtnVisibility: (Boolean) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        var expandedIndex by remember { mutableStateOf<Int?>(null) }
+        val size = getEducationMetaDataflow?.manualBuyEducationData?.educationCardList?.size ?: 0
+        getEducationMetaDataflow?.manualBuyEducationData?.educationCardList?.forEachIndexed { index, educationCard ->
+            var visible by remember { mutableStateOf(false) }
+            var expandedDuringAnimation by remember { mutableStateOf(true) }
+
+            LaunchedEffect(Unit) {
+                delay(index * 1500L)
+                visible = true
+                expandedDuringAnimation = true
+                expandedIndex = index
+                delay(1000L)
+                expandedDuringAnimation = false
+                if (index == size - 1) {
+                    onSaveBtnVisibility(true)
                 }
+            }
 
-                LaunchedEffect(expandedIndex) {
-                    viewModel.setExpandedIndex(expandedIndex)
-                }
+            LaunchedEffect(expandedIndex) {
+                viewModel.setExpandedIndex(expandedIndex)
+            }
 
-                AnimatedVisibility(
-                    visible = visible,
-                    enter = slideInVertically(
-                        initialOffsetY = { fullHeight -> screenHeight.height },
-                        animationSpec = tween(
-                            durationMillis = 1000,
-                            easing = LinearOutSlowInEasing
-                        )
-                    ) + fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    val isExpanded =  index == expandedIndex || expandedDuringAnimation
-                    EducationCard(
-                        educationCard = educationCard,
-                        expanded = isExpanded,
-                        onExpandedStateToggle = {
-                            if(expandedIndex != index) {
-                                expandedIndex = index
-                            }
-                        }
+            AnimatedVisibility(
+                visible = visible,
+                enter = slideInVertically(
+                    initialOffsetY = { fullHeight -> screenHeight.height },
+                    animationSpec = tween(
+                        durationMillis = 1000,
+                        easing = LinearOutSlowInEasing
                     )
-                }
-            } ?: Log.e("OnBoardingScreen", "Education card list is null")
-        }
-        Spacer(modifier = Modifier.height(32.dp))
+                ) + fadeIn(),
+                exit = fadeOut()
+            ) {
+                val isExpanded = index == expandedIndex || expandedDuringAnimation
+                EducationCard(
+                    educationCard = educationCard,
+                    expanded = isExpanded,
+                    onExpandedStateToggle = {
+                        if (expandedIndex != index) {
+                            expandedIndex = index
+                        }
+                    }
+                )
+            }
+        } ?: Log.e("OnBoardingScreen", "Education card list is null")
     }
 }
 

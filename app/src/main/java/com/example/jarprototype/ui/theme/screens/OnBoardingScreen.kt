@@ -266,8 +266,8 @@ fun EducationCard(
 ) {
     val cardLinearGradient = Brush.linearGradient(
         listOf(
-            educationCard.strokeStartColor.toComposeColor(),
-            educationCard.strokeEndColor.toComposeColor()
+            educationCard.strokeStartColor.toComposeColor().copy(alpha = 0.32f),
+            educationCard.strokeEndColor.toComposeColor().copy(alpha = 0.32f)
         )
     )
     Card(

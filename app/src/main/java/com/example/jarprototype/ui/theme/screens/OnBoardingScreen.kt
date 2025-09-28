@@ -1,6 +1,12 @@
 package com.example.jarprototype.ui.theme.screens
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -47,13 +54,16 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.example.jarprototype.model.EducationCard
 import com.example.jarprototype.ui.theme.viewmodel.JarViewModel
+import kotlinx.coroutines.delay
 
 @Composable
 fun OnBoardingScreen(
     modifier: Modifier = Modifier,
     viewModel: JarViewModel = hiltViewModel<JarViewModel>()
 ) {
+    val screenHeight = LocalWindowInfo.current.containerSize
     val getEducationMetaDataflow by viewModel.getEducationMetaDataFlow.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) {
         viewModel.getEducationMetaData()
@@ -66,8 +76,6 @@ fun OnBoardingScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        val cardLinearGradient =
-            Brush.linearGradient(listOf(Color.White.copy(alpha = 0.2f), Color.White))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -111,102 +119,150 @@ fun OnBoardingScreen(
             verticalArrangement = Arrangement.spacedBy(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            getEducationMetaDataflow?.manualBuyEducationData?.educationCardList?.forEach { educationCard ->
-                var expanded by remember { mutableStateOf(false) }
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .clip(shape = RoundedCornerShape(28.dp))
-                        .background(color = Color(0xFF28085C).copy(alpha = 0.3f))
-                        .border(
-                            width = 1.dp,
-                            shape = RoundedCornerShape(28.dp),
-                            brush = cardLinearGradient
-                        )
-                        .padding(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                ) {
-                    if (expanded) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .clickable { expanded = !expanded },
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            AsyncImage(
-                                model = educationCard.image,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(340.dp)
-                                    .clip(shape = RoundedCornerShape(16.dp)),
-                                contentDescription = null,
-                                contentScale = ContentScale.FillBounds
-                            )
-                            val formattedText = educationCard.expandStateText.replace(",", ",\n")
-                            Text(
-                                text = formattedText,
-                                style = MaterialTheme.typography.headlineMedium.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp,
-                                    lineHeight = 28.sp,
-                                    color = Color.White,
-                                    letterSpacing = 0.sp,
-                                    platformStyle = PlatformTextStyle(includeFontPadding = false)
-                                ),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 24.dp),
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .clickable { expanded = !expanded },
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                modifier = Modifier.wrapContentSize(),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                AsyncImage(
-                                    model = educationCard.image,
-                                    modifier = Modifier
-                                        .width(32.dp)
-                                        .height(36.dp)
-                                        .clip(shape = RoundedCornerShape(16.dp)),
-                                    contentDescription = null
-                                )
-                                Text(
-                                    text = educationCard.collapsedStateText,
-                                    style = MaterialTheme.typography.headlineMedium.copy(
-                                        fontWeight = FontWeight(700),
-                                        fontSize = 14.sp,
-                                        lineHeight = 20.sp,
-                                        letterSpacing = 0.sp,
-                                        color = Color.White,
-                                        platformStyle = PlatformTextStyle(includeFontPadding = false)
-                                    )
-                                )
-                            }
-                            Icon(
-                                imageVector = Icons.Sharp.KeyboardArrowDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp),
-                                tint = Color(0xFFBAB4CC)
-                            )
-                        }
+            val size = getEducationMetaDataflow?.manualBuyEducationData?.educationCardList?.size ?: 0
+            var expandedIndex by remember { mutableStateOf<Int?>(null) }
+            getEducationMetaDataflow?.manualBuyEducationData?.educationCardList?.forEachIndexed { index, educationCard ->
+                var visible by remember { mutableStateOf(false) }
+                var expandedDuringAnimation by remember { mutableStateOf(true) }
+
+                LaunchedEffect(Unit) {
+                    delay(index * 1500L)
+                    visible = true
+                    expandedDuringAnimation = true
+                    delay(1000L)
+                    expandedDuringAnimation = false
+                    if (index == size - 1) {
+                        expandedIndex = index
                     }
+                }
+
+                AnimatedVisibility(
+                    visible = visible,
+                    enter = slideInVertically(
+                        initialOffsetY = { fullHeight -> screenHeight.height },
+                        animationSpec = tween(
+                            durationMillis = 1000,
+                            easing = LinearOutSlowInEasing
+                        )
+                    ) + fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    val isExpanded =  index == expandedIndex || expandedDuringAnimation
+                    EducationCard(
+                        educationCard = educationCard,
+                        expanded = isExpanded,
+                        onExpandedStateToggle = {
+                            if(expandedIndex != index) {
+                                expandedIndex = index
+                            }
+                        }
+                    )
                 }
             } ?: Log.e("OnBoardingScreen", "Education card list is null")
         }
         Spacer(modifier = Modifier.height(32.dp))
+    }
+}
+
+@Composable
+fun EducationCard(
+    modifier: Modifier = Modifier,
+    educationCard: EducationCard,
+    expanded: Boolean,
+    onExpandedStateToggle: () -> Unit
+) {
+    val cardLinearGradient =
+        Brush.linearGradient(listOf(Color.White.copy(alpha = 0.2f), Color.White))
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+            .clip(shape = RoundedCornerShape(28.dp))
+            .background(color = Color(0xFF28085C).copy(alpha = 0.3f))
+            .border(
+                width = 1.dp,
+                shape = RoundedCornerShape(28.dp),
+                brush = cardLinearGradient
+            )
+            .padding(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent)
+    ) {
+        if (expanded) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .clickable { onExpandedStateToggle() },
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                AsyncImage(
+                    model = educationCard.image,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(340.dp)
+                        .clip(shape = RoundedCornerShape(16.dp)),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds
+                )
+                val formattedText = educationCard.expandStateText.replace(",", ",\n")
+                Text(
+                    text = formattedText,
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        lineHeight = 28.sp,
+                        color = Color.White,
+                        letterSpacing = 0.sp,
+                        platformStyle = PlatformTextStyle(includeFontPadding = false)
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    textAlign = TextAlign.Center
+                )
+            }
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .clickable { onExpandedStateToggle() },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier.wrapContentSize(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    AsyncImage(
+                        model = educationCard.image,
+                        modifier = Modifier
+                            .width(32.dp)
+                            .height(36.dp)
+                            .clip(shape = RoundedCornerShape(16.dp)),
+                        contentDescription = null
+                    )
+                    Text(
+                        text = educationCard.collapsedStateText,
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight(700),
+                            fontSize = 14.sp,
+                            lineHeight = 20.sp,
+                            letterSpacing = 0.sp,
+                            color = Color.White,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false)
+                        )
+                    )
+                }
+                Icon(
+                    imageVector = Icons.Sharp.KeyboardArrowDown,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint = Color(0xFFBAB4CC)
+                )
+            }
+        }
     }
 }

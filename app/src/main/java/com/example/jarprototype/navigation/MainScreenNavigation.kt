@@ -12,9 +12,9 @@ fun NavController.navigateToMainScreenRoute(navOptions: NavOptions) {
     this.navigate(mainScreenRoute, navOptions)
 }
 
-fun NavGraphBuilder.MainScreenSection(nestedScreens: NavGraphBuilder.() -> Unit) {
+fun NavGraphBuilder.MainScreenSection(onNavigateToOnBoardingScreen:() -> Unit, nestedScreens: NavGraphBuilder.() -> Unit) {
     composable(route = mainScreenRoute) {
-        MainScreen()
+        MainScreen(onNavigateToOnBoardingScreen = onNavigateToOnBoardingScreen )
     }
     nestedScreens()
 }

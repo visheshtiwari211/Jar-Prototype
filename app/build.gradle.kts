@@ -76,4 +76,15 @@ dependencies {
 
     //gson convertor factory
     implementation(libs.converter.gson)
+
+    //material icons dependency
+    implementation(libs.androidx.compose.material.icons.extended)
+
+    //accompanist lib
+    implementation(libs.accompanist.systemuicontroller)
+
+    //coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
 }

@@ -17,7 +17,10 @@ fun JarNavHost(
     ) {
         MainScreenSection(
             nestedScreens = {
-
+                OnBoardingScreenSection()
+            },
+            onNavigateToOnBoardingScreen = {
+                navController.navigateToOnBoardingScreen()
             }
         )
     }

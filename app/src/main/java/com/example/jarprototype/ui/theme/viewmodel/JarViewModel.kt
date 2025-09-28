@@ -31,4 +31,11 @@ class JarViewModel @Inject constructor(private val repository: JarRepository): V
             }
         }
     }
+
+    private var _expandedIndexFlow: MutableStateFlow<Int?> = MutableStateFlow(null)
+    var expandedIndexFlow = _expandedIndexFlow.asStateFlow()
+
+    fun setExpandedIndex(index: Int?) {
+        _expandedIndexFlow.value = index
+    }
 }

@@ -56,6 +56,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.example.jarprototype.model.EducationCard
 import com.example.jarprototype.ui.theme.viewmodel.JarViewModel
+import com.example.jarprototype.utils.Utils.toComposeColor
 import kotlinx.coroutines.delay
 
 @Composable
@@ -68,11 +69,26 @@ fun OnBoardingScreen(
     LaunchedEffect(Unit) {
         viewModel.getEducationMetaData()
     }
+    val expandedIndexFlow by viewModel.expandedIndexFlow.collectAsStateWithLifecycle()
+    var bgBrush by remember { mutableStateOf(Brush.linearGradient(listOf(Color.White, Color.White)))}
+
+    LaunchedEffect(expandedIndexFlow) {
+        if (expandedIndexFlow != null) {
+            bgBrush = Brush.linearGradient(
+                listOf(
+                    getEducationMetaDataflow?.manualBuyEducationData?.educationCardList[expandedIndexFlow
+                        ?: 0]?.startGradient?.toComposeColor() ?: Color.White,
+                    getEducationMetaDataflow?.manualBuyEducationData?.educationCardList[expandedIndexFlow
+                        ?: 0]?.endGradient?.toComposeColor() ?: Color.White
+                )
+            )
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFF713A65))
+            .background(brush = bgBrush)
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
@@ -129,11 +145,13 @@ fun OnBoardingScreen(
                     delay(index * 1500L)
                     visible = true
                     expandedDuringAnimation = true
+                    expandedIndex = index
                     delay(1000L)
                     expandedDuringAnimation = false
-                    if (index == size - 1) {
-                        expandedIndex = index
-                    }
+                }
+
+                LaunchedEffect(expandedIndex) {
+                    viewModel.setExpandedIndex(expandedIndex)
                 }
 
                 AnimatedVisibility(
@@ -171,14 +189,18 @@ fun EducationCard(
     expanded: Boolean,
     onExpandedStateToggle: () -> Unit
 ) {
-    val cardLinearGradient =
-        Brush.linearGradient(listOf(Color.White.copy(alpha = 0.2f), Color.White))
+    val cardLinearGradient = Brush.linearGradient(
+        listOf(
+            educationCard.strokeStartColor.toComposeColor(),
+            educationCard.strokeEndColor.toComposeColor()
+        )
+    )
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .clip(shape = RoundedCornerShape(28.dp))
-            .background(color = Color(0xFF28085C).copy(alpha = 0.3f))
+            .background(educationCard.backGroundColor.toComposeColor())
             .border(
                 width = 1.dp,
                 shape = RoundedCornerShape(28.dp),

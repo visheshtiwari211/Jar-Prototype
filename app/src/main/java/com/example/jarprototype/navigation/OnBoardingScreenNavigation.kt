@@ -12,8 +12,14 @@ fun NavController.navigateToOnBoardingScreen(navOptions: NavOptions? = null) {
     this.navigate(route = onBoardingScreenRoute, navOptions = navOptions)
 }
 
-fun NavGraphBuilder.OnBoardingScreenSection() {
+fun NavGraphBuilder.OnBoardingScreenSection(
+    onNavigateToLandingPage: () -> Unit,
+    onBackClick: () -> Unit
+) {
     composable(route = onBoardingScreenRoute) {
-        OnBoardingScreen()
+        OnBoardingScreen(
+            onNavigateToLandingPage = onNavigateToLandingPage,
+            onBackClick = onBackClick
+        )
     }
 }

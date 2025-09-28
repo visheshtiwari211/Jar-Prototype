@@ -58,6 +58,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
 import com.example.jarprototype.model.Data
 import com.example.jarprototype.model.EducationCard
+import com.example.jarprototype.ui.theme.screens.components.TopBarComposable
 import com.example.jarprototype.ui.theme.viewmodel.JarViewModel
 import com.example.jarprototype.utils.Utils.toComposeColor
 import kotlinx.coroutines.delay
@@ -65,7 +66,9 @@ import kotlinx.coroutines.delay
 @Composable
 fun OnBoardingScreen(
     modifier: Modifier = Modifier,
-    viewModel: JarViewModel = hiltViewModel<JarViewModel>()
+    viewModel: JarViewModel = hiltViewModel<JarViewModel>(),
+    onNavigateToLandingPage: () -> Unit,
+    onBackClick: () -> Unit
 ) {
     val screenHeight = LocalWindowInfo.current.containerSize
     val getEducationMetaDataflow by viewModel.getEducationMetaDataFlow.collectAsStateWithLifecycle()
@@ -107,42 +110,13 @@ fun OnBoardingScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
+            TopBarComposable(
+                topBarText = "Onboarding",
+                onBackClick = onBackClick,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight(),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .padding(horizontal = 16.dp, vertical = 15.5.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Sharp.ArrowBack,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(height = 24.dp, width = 20.dp)
-                            .padding(vertical = 2.dp),
-                        tint = Color.White
-                    )
-
-                    Text(
-                        text = "Onboarding",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight(700),
-                            fontSize = 16.sp,
-                            lineHeight = 24.sp,
-                            color = Color.White,
-                            platformStyle = PlatformTextStyle(includeFontPadding = false)
-                        )
-                    )
-                }
-            }
+                    .wrapContentHeight()
+            )
             EducationCardList(
                 getEducationMetaDataflow,
                 viewModel,
@@ -166,7 +140,8 @@ fun OnBoardingScreen(
                         .border(
                             color = getEducationMetaDataflow?.manualBuyEducationData?.saveButtonCta?.strokeColor?.toComposeColor()
                                 ?: Color(0xFF272239), width = 0.dp
-                        ),
+                        )
+                        .clickable{ onNavigateToLandingPage() },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Start
                 ) {
